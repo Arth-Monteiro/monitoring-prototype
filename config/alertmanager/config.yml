@@ -1,0 +1,18 @@
+route:
+  receiver: 'slack'
+
+receivers:
+  - name: 'slack'
+    slack_configs:
+      - send_resolved: true
+        username: 'Alert Manager'
+        channel: 'testes'
+        api_url: ''
+        text: |-
+          {{ range .Alerts }}
+            *Alert:* {{ .Annotations.summary }} - `{{ .Labels.severity }}`
+            *Description:* {{ .Annotations.description }}
+            *Details:* 
+            {{ range .Labels.SortedPairs }} • *{{ .Name }}: * `{{ .Value }}`
+            {{ end }}
+          {{ end }}
