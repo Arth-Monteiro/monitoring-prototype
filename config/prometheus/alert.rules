@@ -1,0 +1,57 @@
+groups:
+- name: Host
+  rules:
+
+  # Trigger an alert if the Docker host memory is almost full
+  - alert: high_memory_load
+    # Condition for alerting
+    expr: (sum(node_memory_MemTotal) - sum(node_memory_MemFree + node_memory_Buffers + node_memory_Cached) ) / sum(node_memory_MemTotal) * 100 > 85
+    for: 30s
+    # Annotation - additional informational labels to store more information
+    annotations:
+      summary: 'Server memory is almost full'
+      description: "Docker host memory usage is {{ humanize $value}}%. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+    # Labels - additional labels to be attached to the alert
+    labels:
+      severity: warning
+
+  # Trigger an alert if the Docker host storage is almost full
+  - alert: high_storage_load
+    # Condition for alerting
+    expr: (node_filesystem_size{fstype="aufs"} - node_filesystem_free{fstype="aufs"}) / node_filesystem_size{fstype="aufs"}  * 100 > 85
+    for: 30s
+    # Annotation - additional informational labels to store more information
+    annotations:
+      summary: 'Server storage is almost full'
+      description: "Docker host storage usage is {{ humanize $value}}%. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+    # Labels - additional labels to be attached to the alert
+    labels:
+      severity: warning
+
+  - alert: high_cpu_load
+    # Condition for alerting
+    expr: node_load1 > 1.5
+    for: 30s
+    # Annotation - additional informational labels to store more information
+    annotations:
+      summary: "Instance {{ $labels.instance }} under high load"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} is under high load."
+    # Labels - additional labels to be attached to the alert
+    labels:
+      severity: warning
+
+- name: Containers
+  rules:
+
+  # Trigger an alert if a container is down for more than 30 seconds
+  - alert: service_down
+    # Condition for alerting
+    expr: up == 0
+    for: 30s
+    # Annotation - additional informational labels to store more information
+    annotations:
+      summary: "Instance {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 30 seconds."
+    # Labels - additional labels to be attached to the alert
+    labels:
+      severity: critical
